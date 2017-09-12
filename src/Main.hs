@@ -2,6 +2,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 module Main where
 
@@ -13,51 +15,61 @@ import Miso
 import Miso.String
 
 data Action
-  = Time !Double
+  = Swap
   | NoOp
-
-foreign import javascript unsafe "$r = performance.now();" now ::
-               IO Double
 
 main :: IO ()
 main = do
-  time <- now
-  let m = mario {time = time}
-  startApp App {model = m, initialAction = NoOp, ..}
+  startApp App {model = initialModel, initialAction = Swap, ..}
   where
-    update = updateMario
+    update = updateModel
     view = display
     events = defaultEvents
     subs = []
 
-data Model = Model
-  { time :: !Double
-  , delta :: !Double
-  , deltas :: ![Double]
-  } deriving (Show, Eq)
+newtype SubModel1 =
+  SubModel1 String
+  deriving (Eq, Show)
 
-data Direction
-  = L
-  | R
-  deriving (Show, Eq)
+newtype SubModel2 =
+  SubModel2 Int
+  deriving (Eq, Show)
 
-mario :: Model
-mario = Model {time = 0, delta = 0, deltas = []}
+class SubModel a where
+  displayModel :: a -> View action
 
-updateMario :: Action -> Model -> Effect Action Model
-updateMario NoOp m = m <# (Time <$> now)
-updateMario (Time newTime) m = step newModel
-  where
-    newModel =
-      m
-      { delta = max (delta m) (newTime - time m)
-      , deltas = delta m : deltas m
-      , time = newTime
-      }
+instance SubModel SubModel1 where
+  displayModel (SubModel1 s) = p_ [] [text . pack . show $ s]
 
-step :: Model -> Effect Action Model
-step m = m <# (Time <$> now)
+instance SubModel SubModel2 where
+  displayModel (SubModel2 s) = p_ [] [text . pack . show $ s]
 
-display :: Model -> View action
-display m@Model {..} =
-  div_ [] [p_ [] [text . pack . show $ time], p_ [] [text . pack . show $delta]]
+initialModel = Model 0 $ SubModel1 "World"
+
+initialModel2 = Model 1 $ SubModel2 2017
+
+data Model = forall a. (SubModel a) => Model Int a
+
+instance Eq Model where
+  Model x _ == Model y _ = x == y
+  Model x _ /= Model y _ = x == y
+
+updateModel :: Action -> Model -> Effect Action Model
+updateModel Swap (Model 0 _) =
+  initialModel2 <# do
+    putStrLn "Swapping to 1"
+    pure NoOp
+updateModel Swap (Model 1 _) =
+  initialModel <# do
+    putStrLn "Swapping to 0"
+    pure NoOp
+updateModel NoOp m = noEff m
+
+display :: Model -> View Action
+display (Model _ m) =
+  div_
+    []
+    [ button_ [onClick Swap] [text "Swap"]
+    , p_ [] [text . pack $ "Model"]
+    , displayModel m
+    ]
