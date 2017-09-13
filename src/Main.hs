@@ -7,15 +7,23 @@
 
 module Main where
 
+import qualified Additive as A
 import Data.Function
 import qualified Data.Map as M
 import Data.Monoid
+import qualified SubModel
 
 import Miso
 import Miso.String
 
+data Model = Model
+  { additive :: A.Model
+  , currentModel :: String
+  } deriving (Show, Eq)
+
 data Action
   = Swap
+  | AdditiveAction !A.Action
   | NoOp
 
 main :: IO ()
@@ -27,49 +35,24 @@ main = do
     events = defaultEvents
     subs = []
 
-newtype SubModel1 =
-  SubModel1 String
-  deriving (Eq, Show)
+initialModel :: Model
+initialModel = Model A.initialModel "Additive"
 
-newtype SubModel2 =
-  SubModel2 Int
-  deriving (Eq, Show)
-
-class SubModel a where
-  displayModel :: a -> View action
-
-instance SubModel SubModel1 where
-  displayModel (SubModel1 s) = p_ [] [text . pack . show $ s]
-
-instance SubModel SubModel2 where
-  displayModel (SubModel2 s) = p_ [] [text . pack . show $ s]
-
-initialModel = Model 0 $ SubModel1 "World"
-
-initialModel2 = Model 1 $ SubModel2 2017
-
-data Model = forall a. (SubModel a) => Model Int a
-
-instance Eq Model where
-  Model x _ == Model y _ = x == y
-  Model x _ /= Model y _ = x == y
+additivePa :: A.PublicActions Action
+additivePa = A.PublicActions {A.toParent = AdditiveAction, A.click = NoOp}
 
 updateModel :: Action -> Model -> Effect Action Model
-updateModel Swap (Model 0 _) =
-  initialModel2 <# do
-    putStrLn "Swapping to 1"
-    pure NoOp
-updateModel Swap (Model 1 _) =
-  initialModel <# do
-    putStrLn "Swapping to 0"
-    pure NoOp
+updateModel (AdditiveAction act) m = do
+  addModel <- SubModel.updateModel additivePa act $ additive m
+  noEff m {additive = addModel}
+updateModel Swap m = noEff m
 updateModel NoOp m = noEff m
 
 display :: Model -> View Action
-display (Model _ m) =
+display m@Model {..} =
   div_
     []
     [ button_ [onClick Swap] [text "Swap"]
-    , p_ [] [text . pack $ "Model"]
-    , displayModel m
+    , p_ [] [text . pack $ "Model : ", b_ [] [text . pack $ currentModel]]
+    , SubModel.viewModel additivePa A.NoOp additive
     ]
