@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Multiplicative where
 
@@ -28,7 +29,9 @@ data Action
   | NoOp
   deriving (Show, Eq)
 
-instance SubModel PublicActions Action Model where
+instance SubModel Model where
+  type PublicActionsType Model = PublicActions
+  type ActionType Model = Action
   updateModel pa action m@Model {..} =
     case action of
       Multiply ->

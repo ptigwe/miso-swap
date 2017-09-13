@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module SubModel where
 
@@ -7,6 +7,12 @@ import Miso
 import Miso.String
 
 {- act not needed in viewModel -}
-class SubModel pa act model | model -> act where
-  viewModel :: pa action -> model -> View action
-  updateModel :: pa action -> act -> model -> Effect action model
+class SubModel model where
+  type PublicActionsType model :: * -> *
+  type ActionType model
+  viewModel :: PublicActionsType model action -> model -> View action
+  updateModel ::
+       PublicActionsType model action
+    -> ActionType model
+    -> model
+    -> Effect action model
