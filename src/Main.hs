@@ -55,5 +55,5 @@ display m@Model {..} =
     []
     [ button_ [onClick Swap] [text "Swap"]
     , p_ [] [text . pack $ "Model : ", b_ [] [text . pack $ currentModel]]
-    , SubModel.viewModel additivePa M.NoOp additive
+    , SubModel.viewModel additivePa additive
     ]

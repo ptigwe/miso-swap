@@ -40,7 +40,7 @@ instance SubModel PublicActions Action Model where
           putStrLn $ "Divide" ++ show counter
           pure $ click pa
       NoOp -> noEff m
-  viewModel pa act m =
+  viewModel pa m =
     div_
       []
       [ button_ [onClick $ toParent pa Multiply] [text "*"]
