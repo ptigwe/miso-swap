@@ -11,20 +11,19 @@ import qualified Additive as A
 import Data.Function
 import Data.Monoid
 import qualified Multiplicative as M
-import qualified SubModel
+import qualified SubModel as S
 
 import Miso
 import Miso.String
 
 data Model = Model
-  { additive :: M.Model
+  { additive :: S.SubModel
   , currentModel :: String
-  } deriving (Show, Eq)
+  } deriving (Eq)
 
 data Action
   = Swap
-  | AdditiveAction !A.Action
-  | MultiplicativeAction !M.Action
+  | SubModelAction !S.ActionIdx
   | NoOp
 
 main :: IO ()
@@ -37,16 +36,20 @@ main = do
     subs = []
 
 initialModel :: Model
-initialModel = Model M.initialModel "Additive"
+initialModel = Model (S.SubModel A.initialModel) "Additive"
 
-additivePa :: M.PublicActions Action
-additivePa = M.PublicActions {M.toParent = MultiplicativeAction, M.click = NoOp}
+initialModel2 :: Model
+initialModel2 = Model (S.SubModel M.initialModel) "Multiplicative"
+
+additivePa :: S.PublicActions Action
+additivePa = S.PublicActions {S.toParent = SubModelAction, S.click = NoOp}
 
 updateModel :: Action -> Model -> Effect Action Model
-updateModel (MultiplicativeAction act) m = do
-  addModel <- SubModel.updateModel additivePa act $ additive m
+updateModel (SubModelAction act) m@Model {..} = do
+  addModel <- S.updateModel additive additivePa act
   noEff m {additive = addModel}
-updateModel Swap m = noEff m
+updateModel Swap (Model _ "Additive") = noEff initialModel2
+updateModel Swap (Model _ "Multiplicative") = noEff initialModel
 updateModel NoOp m = noEff m
 
 display :: Model -> View Action
@@ -55,5 +58,5 @@ display m@Model {..} =
     []
     [ button_ [onClick Swap] [text "Swap"]
     , p_ [] [text . pack $ "Model : ", b_ [] [text . pack $ currentModel]]
-    , SubModel.viewModel additivePa additive
+    , S.viewModel additive additivePa
     ]

@@ -18,21 +18,22 @@ data Model = Model
 initialModel :: Model
 initialModel = Model 1 0
 
-data PublicActions action = PublicActions
-  { toParent :: Action -> action
-  , click :: action
-  }
-
 data Action
   = Multiply
   | Divide
   | NoOp
   deriving (Show, Eq)
 
-instance SubModel Model where
-  type PublicActionsType Model = PublicActions
-  type ActionType Model = Action
-  updateModel pa action m@Model {..} =
+idxToAction 0 = Multiply
+idxToAction 1 = Divide
+idxToAction _ = NoOp
+
+actionIdx Multiply = 0
+actionIdx Divide = 1
+actionIdx NoOp = 2
+
+instance SubModel_ Model where
+  updateModel m@Model {..} pa aIdx =
     case action of
       Multiply ->
         m {counter = counter * 2} <# do
@@ -43,10 +44,12 @@ instance SubModel Model where
           putStrLn $ "Divide" ++ show counter
           pure $ click pa
       NoOp -> noEff m
-  viewModel pa m =
+    where
+      action = idxToAction aIdx
+  viewModel m pa =
     div_
       []
-      [ button_ [onClick $ toParent pa Multiply] [text "*"]
+      [ button_ [onClick $ toParent pa $ actionIdx Multiply] [text "*"]
       , text . ms . show . counter $ m
-      , button_ [onClick $ toParent pa Divide] [text "/"]
+      , button_ [onClick $ toParent pa $ actionIdx Divide] [text "/"]
       ]

@@ -18,21 +18,22 @@ data Model = Model
 initialModel :: Model
 initialModel = Model 0 0
 
-data PublicActions action = PublicActions
-  { toParent :: Action -> action
-  , click :: action
-  }
-
 data Action
   = Subtract
   | Add
   | NoOp
   deriving (Show, Eq)
 
-instance SubModel Model where
-  type PublicActionsType Model = PublicActions
-  type ActionType Model = Action
-  updateModel pa action m@Model {..} =
+idxToAction 0 = Subtract
+idxToAction 1 = Add
+idxToAction _ = NoOp
+
+actionIdx Subtract = 0
+actionIdx Add = 1
+actionIdx NoOp = 2
+
+instance SubModel_ Model where
+  updateModel m@Model {..} pa aIdx =
     case action of
       Subtract ->
         m {counter = counter - 1} <# do
@@ -43,10 +44,12 @@ instance SubModel Model where
           putStrLn $ "Add" ++ show counter
           pure $ click pa
       NoOp -> noEff m
-  viewModel pa m =
+    where
+      action = idxToAction aIdx
+  viewModel m pa =
     div_
       []
-      [ button_ [onClick $ toParent pa Add] [text "+"]
+      [ button_ [onClick $ toParent pa $ actionIdx Add] [text "+"]
       , text . ms . show . counter $ m
-      , button_ [onClick $ toParent pa Subtract] [text "-"]
+      , button_ [onClick $ toParent pa $ actionIdx Subtract] [text "-"]
       ]
