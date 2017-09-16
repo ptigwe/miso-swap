@@ -10,6 +10,7 @@ import Component
 import Miso
 import Miso.String
 
+-- Model for the Additive Component
 data Model = Model
   { counter :: Int
   , clickCount :: Int
@@ -18,16 +19,21 @@ data Model = Model
 initialModel :: Model
 initialModel = Model 0 0
 
+-- Actions for this component
 data Action
   = Subtract
   | Add
   | NoOp
   deriving (Show, Eq)
 
+-- Map integers to Actions
+idxToAction :: Int -> Action
 idxToAction 0 = Subtract
 idxToAction 1 = Add
 idxToAction _ = NoOp
 
+-- Map Actions to integers
+actionIdx :: Action -> Int
 actionIdx Subtract = 0
 actionIdx Add = 1
 actionIdx NoOp = 2
