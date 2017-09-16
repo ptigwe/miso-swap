@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ExistentialQuantification #-}
 
-module SubModel where
+module Component where
 
 import Miso
 import Miso.String
@@ -15,22 +15,22 @@ data PublicActions action = PublicActions
 type ActionIdx = Int
 
 {- act not needed in viewModel -}
-class SubModel_ model where
+class Component_ model where
   viewModel :: model -> PublicActions action -> View action
   updateModel ::
        model -> PublicActions action -> ActionIdx -> Effect action model
 
-data SubModel =
-  forall m. (SubModel_ m, Eq m) =>
-            SubModel m
-                     Bool
+data Component =
+  forall m. (Component_ m, Eq m) =>
+            Component m
+                      Bool
 
-instance SubModel_ SubModel where
-  viewModel (SubModel m _) = viewModel m
-  updateModel (SubModel m b) pa aIdx = do
+instance Component_ Component where
+  viewModel (Component m _) = viewModel m
+  updateModel (Component m b) pa aIdx = do
     newModel <- updateModel m pa aIdx
     let x = m == newModel
-    noEff $ SubModel newModel $ x == b
+    noEff $ Component newModel $ x == b
 
-instance Eq SubModel where
-  SubModel _ b1 == SubModel _ b2 = b1 == b2
+instance Eq Component where
+  Component _ b1 == Component _ b2 = b1 == b2

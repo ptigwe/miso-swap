@@ -6,9 +6,9 @@
 
 module Additive where
 
+import Component
 import Miso
 import Miso.String
-import SubModel
 
 data Model = Model
   { counter :: Int
@@ -32,7 +32,7 @@ actionIdx Subtract = 0
 actionIdx Add = 1
 actionIdx NoOp = 2
 
-instance SubModel_ Model where
+instance Component_ Model where
   updateModel m@Model {..} pa aIdx =
     case action of
       Subtract ->

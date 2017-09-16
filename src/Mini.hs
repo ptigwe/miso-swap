@@ -27,28 +27,31 @@ main = do
     events = defaultEvents
     subs = []
 
-newtype SubModel1 =
-  SubModel1 String
+newtype Component1 =
+  Component1 String
   deriving (Eq, Show)
 
-newtype SubModel2 =
-  SubModel2 Int
+newtype Component2 =
+  Component2 Int
   deriving (Eq, Show)
 
-class SubModel a where
+class Component a where
   displayModel :: a -> View action
 
-instance SubModel SubModel1 where
-  displayModel (SubModel1 s) = p_ [] [text . pack . show $ s]
+instance Component Component1 where
+  displayModel (Component1 s) = p_ [] [text . pack . show $ s]
 
-instance SubModel SubModel2 where
-  displayModel (SubModel2 s) = p_ [] [text . pack . show $ s]
+instance Component Component2 where
+  displayModel (Component2 s) = p_ [] [text . pack . show $ s]
 
-initialModel = Model 0 $ SubModel1 "World"
+initialModel = Model 0 $ Component1 "World"
 
-initialModel2 = Model 1 $ SubModel2 2017
+initialModel2 = Model 1 $ Component2 2017
 
-data Model = forall a. (SubModel a) => Model Int a
+data Model =
+  forall a. (Component a) =>
+            Model Int
+                  a
 
 instance Eq Model where
   Model x _ == Model y _ = x == y

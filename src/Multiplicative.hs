@@ -6,9 +6,9 @@
 
 module Multiplicative where
 
+import Component
 import Miso
 import Miso.String
-import SubModel
 
 data Model = Model
   { counter :: Int
@@ -32,7 +32,7 @@ actionIdx Multiply = 0
 actionIdx Divide = 1
 actionIdx NoOp = 2
 
-instance SubModel_ Model where
+instance Component_ Model where
   updateModel m@Model {..} pa aIdx =
     case action of
       Multiply ->
