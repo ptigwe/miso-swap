@@ -36,10 +36,10 @@ main = do
     subs = []
 
 initialModel :: Model
-initialModel = Model (S.SubModel A.initialModel) "Additive"
+initialModel = Model (S.SubModel A.initialModel False) "Additive"
 
 initialModel2 :: Model
-initialModel2 = Model (S.SubModel M.initialModel) "Multiplicative"
+initialModel2 = Model (S.SubModel M.initialModel False) "Multiplicative"
 
 additivePa :: S.PublicActions Action
 additivePa = S.PublicActions {S.toParent = SubModelAction, S.click = NoOp}
