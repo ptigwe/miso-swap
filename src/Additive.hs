@@ -27,13 +27,13 @@ data Action
   deriving (Show, Eq)
 
 -- Map integers to Actions
-idxToAction :: Int -> Action
+idxToAction :: ActionIdx -> Action
 idxToAction 0 = Subtract
 idxToAction 1 = Add
 idxToAction _ = NoOp
 
 -- Map Actions to integers
-actionIdx :: Action -> Int
+actionIdx :: Action -> ActionIdx
 actionIdx Subtract = 0
 actionIdx Add = 1
 actionIdx NoOp = 2

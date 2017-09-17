@@ -27,13 +27,13 @@ data Action
   deriving (Show, Eq)
 
 -- Map integers to Actions
-idxToAction :: Int -> Action
+idxToAction :: ActionIdx -> Action
 idxToAction 0 = Multiply
 idxToAction 1 = Divide
 idxToAction _ = NoOp
 
 -- Map Actions to integers
-actionIdx :: Action -> Int
+actionIdx :: Action -> ActionIdx
 actionIdx Multiply = 0
 actionIdx Divide = 1
 actionIdx NoOp = 2
